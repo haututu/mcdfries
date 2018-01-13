@@ -1,0 +1,8 @@
+"0","kable(rbind(summary(nzModel.naive)[1:2,c(1, 5:6)], "
+"0","            summary(nzModel.prior)[1:2,c(1, 5:6)],"
+"0","            summary(nzModel.japPrior)[1:2,c(1, 5:6)]),"
+"0","      ""html"") %>%"
+"0","  kable_styling(bootstrap_options = c(""striped"", ""hover""), full_width = FALSE) %>%"
+"0","  group_rows(""Vague prior"", 1, 2) %>%"
+"0","  group_rows(""Informed prior"", 3, 4) %>%"
+"0","  group_rows(""Data informed prior"", 5, 6)"

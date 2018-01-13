@@ -1,0 +1,24 @@
+"0","nzModel.naive <- BESTmcmc(nzData, 
+                          prior = list(muM=0, 
+                                       muSD=100, 
+                                       sigmaMode=5, 
+                                       sigmaSD=100))
+"
+"2","Waiting for parallel processing to complete..."
+"2","done.
+"
+"0","nzModel.prior <- BESTmcmc(nzData, "
+"0","                          prior = list(muM=0, "
+"0","                                       muSD=5, "
+"0","                                       sigmaMode=5, "
+"0","                                       sigmaSD=5))"
+"2","Waiting for parallel processing to complete..."
+"2","done.
+"
+"0","nzModel.japPrior <- BESTmcmc(nzData, prior = list(muM=mean(priorModel.prior$mu), "
+"0","                                               muSD=sd(priorModel.prior$mu)*10, "
+"0","                                               sigmaMode=summary(priorModel.prior)[2,3], "
+"0","                                               sigmaSD=sd(priorModel.prior$sigma*5)))"
+"2","Waiting for parallel processing to complete..."
+"2","done.
+"

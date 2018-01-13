@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1515047846754.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2780604936",
+    "id" : "462F68B5",
+    "lastKnownWriteTime" : 1515140506,
+    "last_content_update" : 1515140506859,
+    "path" : "~/projects/mcdfries/setup.R",
+    "project_path" : "setup.R",
+    "properties" : {
+        "cursorPosition" : "46,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
