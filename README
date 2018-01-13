@@ -1,6 +1,13 @@
-Sources
-  Kyiv small fries 25% under 110gm serving, claimed 110 is weight before frying though; 
-  https://www.kyivpost.com/article/content/ukraine-politics/small-fries-big-headaches-2100.html
+# Overview
+
+After studying Bayesian analysis I was looking for an easy example to test out. 
+This analysis investigates the weight of MacDonalds fries using data from other countries as priors.
+It is also a simple to follow example using BEST. To follow what I have done look at the .html file in this repository.
+
+# Sources
+
+  [Kyiv small fries 25% under 110gm serving, claimed 110 is weight before frying though.](https://www.kyivpost.com/article/content/ukraine-politics/small-fries-big-headaches-2100.html)
+  
   
   UK fries weigh 80g, 114g, and 150g;
   http://www.mcdonalds.co.uk/ukhome/whatmakesmcdonalds/questions/food/fries/how-much-does-a-small-medium-and-large-fries-weigh.html
