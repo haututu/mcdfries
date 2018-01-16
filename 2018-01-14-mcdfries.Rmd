@@ -1,15 +1,18 @@
 ---
-title: "Are McDonalds fries underweight ?"
-author: "Taylor Winter"
-date: "5 January 2018"
+#title: "Are McDonalds fries underweight ?"
+#author: "Taylor Winter"
+#date: "2018-01-05"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 library(BEST)
 library(kableExtra)
+
+opts_chunk$set(echo = TRUE)
+opts_knit$set(global.par = TRUE)
+
 ```
 
 ## Overview
@@ -20,6 +23,9 @@ library(kableExtra)
 I managed to find one study where people weighed ten large fries from a [Japanese McDonalds](https://en.rocketnews24.com/2011/11/29/mcdonalds-japan-skimping-on-french-fries-we-weight-6500g-of-fries-average-large-fry-10g-short/) and a single sample from the [UK](http://www.birminghammail.co.uk/whats-on/food-drink-news/mcdonalds-fries-how-much-you-12723239). This data will be used to produce a prior for the New Zealand data. However, each country seems to have a different weight for their fries to for simplicity, I subtracted the average weight such that measurements represent how many grams over or under-weight they are (see below code).
 
 ```{r setupData}
+#Set plot parameters
+par(bg = '#ecf0f1')
+
 #Set expected weights so we can standardize to zero
 japWgt <- 170
 britWgt <- 150
@@ -33,6 +39,7 @@ priorData <- append(japData, britData)
 
 #Load NZ data
 nzData <- read.csv("nzData.csv")$wgt - nzWgt
+
 ```
 
 Here is the data after I had imported and rescaled it:
@@ -45,7 +52,7 @@ kable(data.frame(Weight=c(japData, britData, nzData),
                  ),
       "html"
       ) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
 ```
 
 We can already see that the mean from Japanese data doesnt look like a good reference for our NZ data but Im curious to see how we might leverage off the variance and also how much such this helps vs hinders our small sample size.
@@ -61,9 +68,11 @@ Therefore we can tinker with some distributions using our rescaled means where $
 Using the `plotAreaInROPE()` function we can use samples from our expected distribution and determine what percentage would be within a certain range of our comparable value, in this case -20, the mean weight for medium fries (See intended use for a ROPE [here](http://doingbayesiandataanalysis.blogspot.co.nz/2013/08/how-much-of-bayesian-posterior.html)).
 
 ```{r ropePrior}
+
 plotAreaInROPE(rnorm(10000,0,5), 
                compVal=-20, 
-               maxROPEradius = 10)
+               maxROPEradius = 10
+               )
 ```
 
 We can see that with $$ \mu_L = 0 ,~\sigma_L = 5 $$ only around 2% of large fries will be closer to a medium fry weight than a large fry weight. It seems acceptable and we certainly wouldnt want error to be much higher than that. This translates to an approximate 95% credible interval of +/- 10g or 16%.

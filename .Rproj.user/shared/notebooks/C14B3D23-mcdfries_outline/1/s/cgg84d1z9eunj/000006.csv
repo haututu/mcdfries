@@ -1,8 +1,0 @@
-"0","kable(data.frame(Weight=c(japData, britData, nzData), "
-"0","                 Country=c(rep(""Japan"", length(japData)),"
-"0","                           rep(""Britain"", length(britData)), "
-"0","                           rep(""New Zealand"", length(nzData))"
-"0","                           )"
-"0","                 ),"
-"0","      ""html"""
-"0","      ) %>% kable_styling(full_width = FALSE)"
