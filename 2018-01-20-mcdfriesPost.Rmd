@@ -21,17 +21,14 @@ It seems no one has reported on this besides a [Herald article](http://www.nzher
 
 ## The details
 
-Checking on the McDonalds website the serving size is 120g for a large fries and off the bat, it seems the weights I observed were quite a bit above that[^1];
+Checking on the McDonalds website the serving size is 120g for a large fries and off the bat, it seems the weights I observed were quite a bit above that with an average weight of 138g. Infact, as we can see in the distribution below, there is less than a 1% chance that the average weight is equal to or less than 120g. Even our 95% confidence interval is quite high sitting between 132g and 144g (it's labelled HDI which is a Bayesian equivelant).
 
-[^1]: *NB:* I used overseas data to model estimates so we can get away with only six samples.
+![](posteriorMu.png)
 
-```{r, echo=FALSE}
+## Conclusion
 
-#Load NZ data
-nzData <- read.csv("nzData.csv")$wgt
+No need to fear that we are getting ripped off with our large fries (at least for the McDonalds tested). However, if you for some reason care about the calories then on average you are consuming 60 calories more than advertised based on a rough calculation.
 
-kable(nzData,
-      "html"
-      ) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
-```
+I can sleep easy knowing Im getting my moneys worth but an interesting next step would be to investigate reliability between stores and between medium/large fries.
+
+As a final note, the method behind this is a pretty straight forward example of Bayesian estimation so anyone interested in the data side should take a look at the [full](https://haututu.github.io/JBlog/mcdfries/) write up.
