@@ -1,7 +1,7 @@
 ---
-#title: "Are McDonalds fries underweight ?"
-#author: "Taylor Winter"
-#date: "2018-01-05"
+title: "Are McDonalds fries underweight ?"
+author: "Taylor Winter"
+date: "2018-01-05"
 output: html_document
 ---
 
@@ -14,27 +14,37 @@ opts_chunk$set(echo = TRUE)
 opts_knit$set(global.par = TRUE)
 
 ```
+```{r setPar, include=FALSE}
+#Set plot parameters
+par(bg = '#ecf0f1')
+```
+
 
 ## Overview
+***
+
+In this article I aimed to identify if McDonalds fries were served at the advertised serving size in New Zealand. I only had a small sample so *borrowed power* from a previous sample using a Bayesian prior. Bayesian analyses were conduced using the `BEST` package, a simple to use entry point for Bayesian analyses (although some background would be advisable). All code and data can be found [here](https://github.com/haututu/mcdfries) and there is also a branch with more data so you could follow the code below with more samples to so see how accurate we were (spoiler: pretty accurate).
+
+This is a very easy way to ease into Bayesian analysis and wrap your head around Bayesian posteriors.
 
 
 ## Data background
+***
 
-I managed to find one study where people weighed ten large fries from a [Japanese McDonalds](https://en.rocketnews24.com/2011/11/29/mcdonalds-japan-skimping-on-french-fries-we-weight-6500g-of-fries-average-large-fry-10g-short/) and a single sample from the [UK](http://www.birminghammail.co.uk/whats-on/food-drink-news/mcdonalds-fries-how-much-you-12723239). This data will be used to produce a prior for the New Zealand data. However, each country seems to have a different weight for their fries to for simplicity, I subtracted the average weight such that measurements represent how many grams over or under-weight they are (see below code).
+I managed to find one study where people weighed ten large fries from a [Japanese McDonalds](https://en.rocketnews24.com/2011/11/29/mcdonalds-japan-skimping-on-french-fries-we-weight-6500g-of-fries-average-large-fry-10g-short/) and a single sample from the [UK](http://www.birminghammail.co.uk/whats-on/food-drink-news/mcdonalds-fries-how-much-you-12723239). This data will be used to produce a prior for the New Zealand data. However, each country seems to have a different weight for their fries. To standardize the data I subtracted the serving size weight such that measurements represent how many grams over or under-weight they are (see below code).
 
 ```{r setupData}
-#Set plot parameters
-par(bg = '#ecf0f1')
 
-#Set expected weights so we can standardize to zero
+#Set expected serving weights so we can standardize to zero
 japWgt <- 170
 britWgt <- 150
 nzWgt <- 120
 
-#Load Japanese data and British datum subtracting weight so expected mean is 0
+#Load Japanese data and British datum subtracting weight
 japData <- read.csv("japaneseData.csv")$wgt - japWgt
 britData <- read.csv("britishData.csv")$wgt - britWgt
 
+#Merge Japanese and Bitish data
 priorData <- append(japData, britData)
 
 #Load NZ data
@@ -42,30 +52,32 @@ nzData <- read.csv("nzData.csv")$wgt - nzWgt
 
 ```
 
-Here is the data after I had imported and rescaled it:
+The table below shows a sample of the data. Just eyeballing we can see the Japanese data is under serving size and the New Zealand data is over serving size. It will be interesting to see how we can use this data to inform our small dataset.
+
 ```{r dataTable, echo=FALSE}
-kable(data.frame(Weight=c(japData, britData, nzData), 
-                 Country=c(rep("Japan", length(japData)),
-                           rep("Britain", length(britData)), 
-                           rep("New Zealand", length(nzData))
-                           )
-                 ),
+kable(dplyr::sample_frac(data.frame(Weight=c(japData, britData, nzData),
+                                    Country=c(rep("Japan", length(japData)),
+                                              rep("Britain", length(britData)), 
+                                              rep("New Zealand", length(nzData))
+                                              )
+                                    ),
+                         0.6),
       "html"
       ) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
 ```
 
-We can already see that the mean from Japanese data doesnt look like a good reference for our NZ data but Im curious to see how we might leverage off the variance and also how much such this helps vs hinders our small sample size.
 
 ## What would we expect the distribution to look like ?
+***
 
-I was interested in what we might expect the distribution to look like in NZ. What is an _acceptable_ amount of variance from our expected mean ?
+I was interested in what we might expect the distribution to look like in NZ. What is an _acceptable_ amount of variance from our expected mean / serving size ?
 
-Well... we can assume people will be pissed off if they order a large fries and the weight falls within the same distribution as medium fries. In NZ a medium fries weights 100g and a large fries weighs 120g (estimated from average serving [info](https://mcdonalds.co.nz/menu/fries)).
+Well... we can assume people will be pissed off if they order a large fries and the weight falls within the same distribution as medium fries. In NZ a medium fries weighs 100g and a large fries weighs 120g (estimated from average serving [info](https://mcdonalds.co.nz/menu/fries)).
 
-Therefore we can tinker with some distributions using our rescaled means where $$ \mu_L = 0 ~and~ \mu_M = -20 $$
+Therefore we can tinker with some distributions using our rescaled means of 0 and -20 for 120g and 100g respectively.
 
-Using the `plotAreaInROPE()` function we can use samples from our expected distribution and determine what percentage would be within a certain range of our comparable value, in this case -20, the mean weight for medium fries (See intended use for a ROPE [here](http://doingbayesiandataanalysis.blogspot.co.nz/2013/08/how-much-of-bayesian-posterior.html)).
+Using the `plotAreaInROPE()` function from the `BEST` package we can test distributions for large fries against the serving size of medium fries. The x-axis shows the _radius_ or _interval_. For example, a value of 2 would be 2g on either side of the value we wish to compare to, in this case -20g. The y-axis shows the percentage of samples from our distribution in the given radius. This is pretty useful for testing our distributions but the actual purpose for this function is for generating a _Bayesian p-value_ (See intended use for a ROPE [here](http://doingbayesiandataanalysis.blogspot.co.nz/2013/08/how-much-of-bayesian-posterior.html)).
 
 ```{r ropePrior}
 
@@ -73,24 +85,31 @@ plotAreaInROPE(rnorm(10000,0,5),
                compVal=-20, 
                maxROPEradius = 10
                )
+
 ```
 
-We can see that with $$ \mu_L = 0 ,~\sigma_L = 5 $$ only around 2% of large fries will be closer to a medium fry weight than a large fry weight. It seems acceptable and we certainly wouldnt want error to be much higher than that. This translates to an approximate 95% credible interval of +/- 10g or 16%.
+We can see that with mu=0 and sigma=5 only around 2% of large fries will be closer to a medium fry weight (more than 10g under weight) than a large fry weight. It seems acceptable and we certainly wouldnt want error to be much higher than that. This translates to an approximate 95% credible interval of +/- 10g or 16%.
 
-## What does the past data tell us ?
+At this point I read this back and realise how obvious it is that there is around 2% of samples more than two standard deviations out on a single tail of the distribution. At least we have supported that maths still works and played with a new concept, the ROPE.
 
-Eyeballing the previous data it looks very low. We should remember here that the data was collected at a single restaurant at the same time, i.e. likely the same person filled all boxes. To get around this I tried have a more informed prior with the intention of correcting some systematic error in the collection method.
+## What does previous data tell us ?
+***
 
-Using the `BESTmcmc()` command I found it really easy to stick the data in and specify a prior. I did set a moderate uncertainty around the mean and standard deviation using the `muSD` and `sigmaSD` arguments. This was to allow probabilities closer to the corrected data but to increase the probability of converging closer to our intuitive prior.
+Previous data looks very low. It could be possible that the data we collected is abnormally high, but there are a lot of confounds both our data and the Japanese data, e.g. likely the same person filled all boxes. Interestingly with Bayesian estimation we can build these concerns into our models using the prior.
 
-```{r priorModel}
-priorModel.naive <- BESTmcmc(priorData,
+Using the `BESTmcmc()` command I found it really easy to stick data in and specify a prior. I set a moderate uncertainty around the mean and standard deviation using the `muSD` and `sigmaSD` arguments (I realise moderate can be a little subjective). This means we are weighting the model more towards our prior than the data (see `priorModel.prior`). If we were increadibly uncertain of how the data is distributed then our prior would have very low weight in the model (see `priorModel.vague`).
+
+```{r priorModel, message=FALSE}
+
+#Prior with low certainty, i.e. high muSD and sigmaSD
+priorModel.vague <- BESTmcmc(priorData,
                              prior = list(muM=0, 
                                           muSD=100, 
                                           sigmaMode=5, 
                                           sigmaSD=100)
                              )
 
+#Prior with loose assumption that mu is near 0 and sigma near 5
 priorModel.prior <- BESTmcmc(priorData,
                              prior = list(muM=0, 
                                           muSD=5, 
@@ -100,12 +119,12 @@ priorModel.prior <- BESTmcmc(priorData,
                       
 ```
 
-The table below aggregates information from `summary()` when used on a BESTmcmc object[^1]. Compared to the vague prior, our informed prior did effect the data as suspected. I think when we compare the two posterior distributions, the effect of the informed prior seems fair and Im happy to use it going forward.
+The table below aggregates information from `summary()` when used on a BESTmcmc object[^1]. Compared to the vague prior, our informed prior did effect the data as suspected, pulling parameters about 2g closer to our expected values. An informed prior also decreased the Highest Density Interval (HDI) which is sort of like a confidence interval. I think when we compare the two posterior distributions, the effect of the informed prior seems fair and Im happy to use it going forward.
 
-[^1]: To check the MCMC models converged properly I checked the Rhat was close to one and samples were greater than n.eff. You can bring these numbers up by typing your BESTmcmc object into the console.
+[^1]: To check the MCMC models converged properly I checked the Rhat was close to one and samples were greater than n.eff. You can bring these numbers up by typing your BESTmcmc object into the console and the documentation on these measures is quite good.
 
 ```{r priorTable, echo=FALSE}
-kable(rbind(summary(priorModel.naive)[1:2,c(1, 5:6)], 
+kable(rbind(summary(priorModel.vague)[1:2,c(1, 5:6)], 
             summary(priorModel.prior)[1:2,c(1, 5:6)]),
       "html") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) %>%
@@ -113,46 +132,53 @@ kable(rbind(summary(priorModel.naive)[1:2,c(1, 5:6)],
   group_rows("Informed prior", 3, 4)
 ```
 
-The BEST package has a really nice plot feature too. It can plot mutliple parameters and below we can see the posterior distribution of the mean. The comparative value is also displaced which in this case is zero, a mean equal to the average weight of fries. Based on what we see here there is only a 1% chance of the mean be equal to or greater than zero (my frequentist brain wants to say this interpretation is wrong though).
+The `BEST` package has a really nice plot feature too. It can plot mutliple parameters and below we can see the posterior distribution of the mean (note that the variance on the mean is not the same as sigma, thats a different parameter with its own posterior distribution in Bayesian estimation). The comparative value is also displayed which in this case is zero, a mean equal to the serving size of large fries. Based on what we see here there is only a 1% chance that the mean is equal to or greater than zero (my frequentist brain wants to say this interpretation is wrong though).
 
 ```{r priorplot}
 plot(priorModel.prior)
 ```
 
-If we consider the overlap with our prior (mu=0, sigma=5), we only see a 36% overlap between posterior and prior. Conversely if we used a vague prior the overlap was about 28%.
+If we consider the overlap with our prior (mu=0, sigma=5), we only see a 36% overlap between posterior and prior distributions. Conversely if we used a vague prior the overlap was about 28% with our prior distribution. We can see even with a prior of moderate certainty the data pulled the posterior far from our expected parameters.
 
 ```{r priorOverlap}
 postPriorOverlap(priorModel.prior$mu, dnorm, mean=0, sd=5)
 ```
 
-## What does the New Zealand data tell us ?
 
-Now that we have a posterior using previous data, we can use it as a prior for our NZ data. Ill also run the model using the original prior and a vague prior for good measure.
+## What does the New Zealand data tell us ?
+***
+
+Now that we have a posterior using previous data, we can use it as a prior for our NZ data. Ill also run the model using the original prior we assumed and a vague prior to understand how the priors are effecting the data. Note in the data informed prior below, I have increased the uncertainty of mu and sigma by multiplying `muSD` and `sigmaSD` to reflect our uncertainty in how realiable the previous data represents the New Zealand distribution. `muSD` is multiplied by a factor of 10 because its probable there is something particular about the sample leading to under count. We want to have a reasonable probability that the mean is zero or even a positive number. `sigmaSD` is only multiplied by a factor of two in order to reflect that different employees could have higher variability whereas the Japanese sample came from a single visit and likely a single person.
 
 ```{r nzModel, message=FALSE}
-nzModel.naive <- BESTmcmc(nzData, 
+
+#Prior with low certainty
+nzModel.vague <- BESTmcmc(nzData, 
                           prior = list(muM=0, 
                                        muSD=100, 
                                        sigmaMode=5, 
                                        sigmaSD=100))
 
+#Prior with our assumed distribution
 nzModel.prior <- BESTmcmc(nzData, 
                           prior = list(muM=0, 
                                        muSD=5, 
                                        sigmaMode=5, 
                                        sigmaSD=5))
 
+#Prior using posterior from previous data. Uncertainty increased to account for hypothesised bias
 nzModel.japPrior <- BESTmcmc(nzData, prior = list(muM=mean(priorModel.prior$mu), 
                                                muSD=sd(priorModel.prior$mu)*10, 
                                                sigmaMode=summary(priorModel.prior)[2,3], 
                                                sigmaSD=sd(priorModel.prior$sigma*2)))
 ```
-Interestingly our table output shows the sigma is vastly reduced with the data informed prior. Admittedly I did have to reduce certainty around the mean though as the strong negative number from the previous dataset made positive values highly improbable. We see in the informed prior that mu decreases and sigma has decreased slightly too. This was interesting to see how our more strict expectation of the prior effects the data.
 
-We can see across all models that values less than zero are quite unlikely and with the data informed prior which borrows certainty for sigma from previous data, our credible interval now doesn't even include zero. Further to this, there is only a 0.4% chance of the mean being less than zero given the data.
+Our table output shows sigma is vastly reduced with the data informed prior, that is, the variance in our New Zealand data has been _borrowed_ from the previous data. We see in the informed prior that mu decreases and sigma has decreased slightly too. This was interesting to see how our more strict expectation of the prior effects the data.
+
+We can see across all models that a mean less than zero is quite unlikely and with the data informed prior which borrows certainty for sigma from previous data, our credible interval (HDI) now doesn't even include zero. Further to this, there is only a 0.4% chance of the mean being less than zero given the data.
 
 ```{r nzModelTable}
-kable(rbind(summary(nzModel.naive)[1:2,c(1, 5:6)], 
+kable(rbind(summary(nzModel.vague)[1:2,c(1, 5:6)], 
             summary(nzModel.prior)[1:2,c(1, 5:6)],
             summary(nzModel.japPrior)[1:2,c(1, 5:6)]),
       "html") %>%
@@ -162,28 +188,28 @@ kable(rbind(summary(nzModel.naive)[1:2,c(1, 5:6)],
   group_rows("Data informed prior (DI prior)", 5, 6)
 ```
 
-Comparing our what we believe the mean to be against our posterior distribution of the mean, there is only a 7% overlap in the distributions. If this effect held with a higher sample then its good news I suppose... unless you are interested in accurate nutritional information.
+If we compare the posterior distribution of mu to our suspected mean (0g) and variance (5g), there is only a 7% overlap in the distributions. If this effect held with a higher sample then its good news. if for some reason you count calories and eat at McDonalds it could be you consume more calories than you think.
 
 ```{r nzModelPlot}
 postPriorOverlap(nzModel.japPrior$mu, dnorm, mean=0, sd=5)
 ```
 
-We can also look at our standard deviation to confirm if we are in the right ball park with an estimated 5g. The plot below shows that our mode sigma was 7.05 and that there is around a 90% chance that sigma is greater than 5g.
+We can also look at our standard deviation to confirm if we are in the right ball park with an estimated 5g. The plot below shows that our mode sigma was 5.38 and that there is around a 70% chance that sigma is greater than 5g. Not too shabby.
 
 ```{r sigmaPlot}
 plot(nzModel.japPrior, which = "sd", compVal = 5)
 ```
 
-In one final check I want to know how our three posterior distributions of mu and sigma stack up between the three models. No surprises that the largest overlap is between the vague prior for mu and the data informed prior. It would be super interesting to see how accurate this posterior is with more data.
+In one final check I want to know how our three posterior distributions of mu and sigma stack up between the three models by calculating overlap of each parameter. No surprises that the largest overlap is between the vague prior for mu and the data informed (DI) prior. This suggests that the data informed prior was more representative of the true distribution than our vague and informed priors.
 
 ```{r nzModelOverlapSetup, include=FALSE}
 mu <-c("DI prior ~ Informed prior" = postPriorOverlap(nzModel.japPrior$mu, nzModel.prior$mu),
-       "DI prior ~ Vague prior" = postPriorOverlap(nzModel.japPrior$mu, nzModel.naive$mu),
-       "Informed prior ~ vague prior" = postPriorOverlap(nzModel.naive$mu, nzModel.prior$mu))
+       "DI prior ~ Vague prior" = postPriorOverlap(nzModel.japPrior$mu, nzModel.vague$mu),
+       "Informed prior ~ vague prior" = postPriorOverlap(nzModel.vague$mu, nzModel.prior$mu))
 
 sigma <-c("DI prior ~ Informed prior" = postPriorOverlap(nzModel.japPrior$sigma, nzModel.prior$sigma),
-          "DI prior ~ Vague prior" = postPriorOverlap(nzModel.japPrior$sigma, nzModel.naive$sigma),
-          "Informed prior ~ vague prior" = postPriorOverlap(nzModel.naive$sigma, nzModel.prior$sigma))
+          "DI prior ~ Vague prior" = postPriorOverlap(nzModel.japPrior$sigma, nzModel.vague$sigma),
+          "Informed prior ~ vague prior" = postPriorOverlap(nzModel.vague$sigma, nzModel.prior$sigma))
 ```
 
 ```{r nzModelOverlapTable, echo=FALSE}
@@ -191,14 +217,16 @@ kable(cbind("mu"=round(mu, 2), "sigma"=round(sigma, 2)), "html") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
+
 ## Conclusions
+***
 
-* The mean of the Japanese/UK data was vastly different to the NZ data
+* The mean of the Japanese/UK data was vastly different to the NZ data.
 
-* There is less than a 1% chance that the average weight of large McDonalds fries is the 170g or greater in Japan
+* There is less than a 1% chance that the average weight of large McDonalds fries from the Japanese data is the 170g serving size in Japan.
 
-* Our three samples benefit hugely from the increased certainty of sigma from the previous data
+* Our samples benefit hugely from the increased certainty of sigma from the previous data.
 
-* It is likely that the standard deviation of fry weight is larger than we estimates in our prior with a 90% chance of being greater than 5g
+* It is possible the standard deviation of fry weight is larger than we estimate in our prior with a 70% chance of being greater than 5g. 
 
-* There is less than a 1% chance that the average weight of large McDonalds fries is the estimates 120g or less.
+* There is less than a 1% chance that the average weight of large McDonalds fries is the estimated 120g or less.
