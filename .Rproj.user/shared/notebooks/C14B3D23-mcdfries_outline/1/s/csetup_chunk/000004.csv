@@ -1,5 +1,0 @@
-"0","library(knitr)"
-"0","library(BEST)"
-"0","library(kableExtra)"
-"0","opts_chunk$set(echo = TRUE)"
-"0","opts_knit$set(global.par = TRUE)"

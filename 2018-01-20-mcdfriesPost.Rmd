@@ -1,0 +1,37 @@
+---
+layout: post
+title: "Are McDonalds fries a rip off ?"
+date: "2018-01-20"
+excerpt: "Investigating if McDonalds fries are underweight with Bayesian estimation"
+tags: [R, Bayesian, BEST, McDonalds]
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(kableExtra)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background
+
+I was curious if the weight of fries at McDonalds are under their recommended serving size. To test this I obviously purchased some fries and weighed them. The weight was compared to the serving size using Bayesian estimation (here is a [walkthrough](https://haututu.github.io/JBlog/mcdfries/) for those interested).
+
+It seems no one has reported on this besides a [Herald article](http://www.nzherald.co.nz/food/news/article.cfm?c_id=206&objectid=10707888) I found where they counted the number of fries between medium and large. They didn't over analyse the heck out of it anywhere near as much as we have here.
+
+## The details
+
+Checking on the McDonalds website the serving size is 120g for a large fries and off the bat, it seems the weights I observed were quite a bit above that[^1];
+
+[^1]: *NB:* I used overseas data to model estimates so we can get away with only six samples.
+
+```{r, echo=FALSE}
+
+#Load NZ data
+nzData <- read.csv("nzData.csv")$wgt
+
+kable(nzData,
+      "html"
+      ) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+```

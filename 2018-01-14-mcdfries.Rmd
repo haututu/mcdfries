@@ -23,7 +23,7 @@ par(bg = '#ecf0f1')
 ## Overview
 ***
 
-In this article I aimed to identify if McDonalds fries were served at the advertised serving size in New Zealand. I only had a small sample so *borrowed power* from a previous sample using a Bayesian prior. Bayesian analyses were conduced using the `BEST` package, a simple to use entry point for Bayesian analyses (although some background would be advisable). All code and data can be found [here](https://github.com/haututu/mcdfries) and there is also a branch with more data so you could follow the code below with more samples to so see how accurate we were (spoiler: pretty accurate).
+In this article I aimed to identify if McDonalds fries were served at the advertised serving size in New Zealand. I originally had a small sample so *borrowed power* from a previous sample using a Bayesian prior. Bayesian estimation was conduced using the `BEST` package, a simple to use entry point for Bayesian analyses (although some background would be advisable). All code and data can be found [here](https://github.com/haututu/mcdfries) and there is also a branch with the original three samples I used. I highly suggest looking at the other branch to see how the smaller sample behaves.
 
 This is a very easy way to ease into Bayesian analysis and wrap your head around Bayesian posteriors.
 
