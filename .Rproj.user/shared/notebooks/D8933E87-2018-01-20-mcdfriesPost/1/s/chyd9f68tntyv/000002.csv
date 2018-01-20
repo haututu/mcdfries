@@ -1,0 +1,6 @@
+"0","#Load NZ data"
+"0","nzData <- read.csv(""nzData.csv"")$wgt"
+"0","kable(nzData,"
+"0","      ""html"""
+"0","      ) %>% "
+"0","  kable_styling(bootstrap_options = c(""striped"", ""hover"", ""condensed""), full_width = FALSE)"
