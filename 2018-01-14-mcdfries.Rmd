@@ -1,7 +1,7 @@
 ---
-title: "Are McDonalds fries underweight ?"
-author: "Taylor Winter"
-date: "2018-01-05"
+#title: "Are McDonalds fries underweight ?"
+#author: "Taylor Winter"
+#date: "2018-01-05"
 output: html_document
 ---
 
@@ -20,16 +20,20 @@ par(bg = '#ecf0f1')
 ```
 
 
+
 ## Overview
-***
+
+
 
 In this article I aimed to identify if McDonalds fries were served at the advertised serving size in New Zealand. I originally had a small sample so *borrowed power* from a previous sample using a Bayesian prior. Bayesian estimation was conduced using the `BEST` package, a simple to use entry point for Bayesian analyses (although some background would be advisable). All code and data can be found [here](https://github.com/haututu/mcdfries) and there is also a branch with the original three samples I used. I highly suggest looking at the other branch to see how the smaller sample behaves.
 
 This is a very easy way to ease into Bayesian analysis and wrap your head around Bayesian posteriors.
 
 
+
 ## Data background
-***
+
+
 
 I managed to find one study where people weighed ten large fries from a [Japanese McDonalds](https://en.rocketnews24.com/2011/11/29/mcdonalds-japan-skimping-on-french-fries-we-weight-6500g-of-fries-average-large-fry-10g-short/) and a single sample from the [UK](http://www.birminghammail.co.uk/whats-on/food-drink-news/mcdonalds-fries-how-much-you-12723239). This data will be used to produce a prior for the New Zealand data. However, each country seems to have a different weight for their fries. To standardize the data I subtracted the serving size weight such that measurements represent how many grams over or under-weight they are (see below code).
 
@@ -68,8 +72,10 @@ kable(dplyr::sample_frac(data.frame(Weight=c(japData, britData, nzData),
 ```
 
 
+
 ## What would we expect the distribution to look like ?
-***
+
+
 
 I was interested in what we might expect the distribution to look like in NZ. What is an _acceptable_ amount of variance from our expected mean / serving size ?
 
@@ -83,17 +89,22 @@ Using the `plotAreaInROPE()` function from the `BEST` package we can test distri
 
 plotAreaInROPE(rnorm(10000,0,5), 
                compVal=-20, 
-               maxROPEradius = 10
+               maxROPEradius = 10,
+               cex.lab=1,
+               cex.axis=1,
+               main="Proportion in given range of medium fry weight"
                )
-
 ```
 
 We can see that with mu=0 and sigma=5 only around 2% of large fries will be closer to a medium fry weight (more than 10g under weight) than a large fry weight. It seems acceptable and we certainly wouldnt want error to be much higher than that. This translates to an approximate 95% credible interval of +/- 10g or 16%.
 
 At this point I read this back and realise how obvious it is that there is around 2% of samples more than two standard deviations out on a single tail of the distribution. At least we have supported that maths still works and played with a new concept, the ROPE.
 
+
+
 ## What does previous data tell us ?
-***
+
+
 
 Previous data looks very low. It could be possible that the data we collected is abnormally high, but there are a lot of confounds both our data and the Japanese data, e.g. likely the same person filled all boxes. Interestingly with Bayesian estimation we can build these concerns into our models using the prior.
 
@@ -140,13 +151,15 @@ plot(priorModel.prior)
 
 If we consider the overlap with our prior (mu=0, sigma=5), we only see a 36% overlap between posterior and prior distributions. Conversely if we used a vague prior the overlap was about 28% with our prior distribution. We can see even with a prior of moderate certainty the data pulled the posterior far from our expected parameters.
 
-```{r priorOverlap}
+```{r priorOverlap, results="hide"}
 postPriorOverlap(priorModel.prior$mu, dnorm, mean=0, sd=5)
 ```
 
 
+
 ## What does the New Zealand data tell us ?
-***
+
+
 
 Now that we have a posterior using previous data, we can use it as a prior for our NZ data. Ill also run the model using the original prior we assumed and a vague prior to understand how the priors are effecting the data. Note in the data informed prior below, I have increased the uncertainty of mu and sigma by multiplying `muSD` and `sigmaSD` to reflect our uncertainty in how realiable the previous data represents the New Zealand distribution. `muSD` is multiplied by a factor of 10 because its probable there is something particular about the sample leading to under count. We want to have a reasonable probability that the mean is zero or even a positive number. `sigmaSD` is only multiplied by a factor of two in order to reflect that different employees could have higher variability whereas the Japanese sample came from a single visit and likely a single person.
 
@@ -177,7 +190,7 @@ Our table output shows sigma is vastly reduced with the data informed prior, tha
 
 We can see across all models that a mean less than zero is quite unlikely and with the data informed prior which borrows certainty for sigma from previous data, our credible interval (HDI) now doesn't even include zero. Further to this, there is only a 0.4% chance of the mean being less than zero given the data.
 
-```{r nzModelTable}
+```{r nzModelTable, echo=FALSE}
 kable(rbind(summary(nzModel.vague)[1:2,c(1, 5:6)], 
             summary(nzModel.prior)[1:2,c(1, 5:6)],
             summary(nzModel.japPrior)[1:2,c(1, 5:6)]),
@@ -190,7 +203,7 @@ kable(rbind(summary(nzModel.vague)[1:2,c(1, 5:6)],
 
 If we compare the posterior distribution of mu to our suspected mean (0g) and variance (5g), there is only a 7% overlap in the distributions. If this effect held with a higher sample then its good news. if for some reason you count calories and eat at McDonalds it could be you consume more calories than you think.
 
-```{r nzModelPlot}
+```{r nzModelPlot, results="hide"}
 postPriorOverlap(nzModel.japPrior$mu, dnorm, mean=0, sd=5)
 ```
 
@@ -218,8 +231,10 @@ kable(cbind("mu"=round(mu, 2), "sigma"=round(sigma, 2)), "html") %>%
 ```
 
 
+
 ## Conclusions
-***
+
+
 
 * The mean of the Japanese/UK data was vastly different to the NZ data.
 
